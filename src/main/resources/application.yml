@@ -15,6 +15,11 @@ eureka:
 spring:
   application:
     name: apigateway-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
   cloud:
     gateway:
       default-filters:
@@ -24,7 +29,15 @@ spring:
           preLogger: true
           postLogger: true
       routes:
-       
+      - id: user-service
+        uri: lb://USER-SERVICE
+        predicates:
+        - Path=/user-service/actuator/** #로그
+        - Method=GET,POST
+        filters:
+        - RemoveRequestHeader=Cookie
+        - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+        
       - id: user-service
         uri: lb://USER-SERVICE
         predicates:
@@ -32,7 +45,7 @@ spring:
         - Method=POST
         filters:
         - RemoveRequestHeader=Cookie
-        - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+        - RewritePath=/user-service/(?<segment>.*), /$\{segment}      
         
       - id: user-service
         uri: lb://USER-SERVICE
@@ -78,6 +91,15 @@ spring:
 #            baseMessage: Hi There
 #            preLogger: true
 #            postLogger: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, httptrace, busrefresh
          
-token:
-  secret: user_token
+#token:
+#  secret: user_token
+  
+  
+  
